@@ -8,7 +8,7 @@ Every playable ticket needs:
 2. Matching `starterFiles` and `solutionFiles` paths. The first file is the entry module. Use relative imports for additional files and named exports for the tested API.
 3. A hidden test source string and matching `testNames`. The `seed()` helper extracts names from `test('Name', ...)` calls. Names must be unique and stable because XP milestones use them.
 4. Three hints: a conceptual nudge, pseudocode, and a nearly complete fragment with one blank. Hints are recorded without XP penalties.
-5. At least two review notes, each 40 words or fewer, with an existing source path and a real reference line number. Explain a concrete tradeoff.
+5. At least two review notes, each 40 words or fewer, with an existing source path and a real reference line number. Explain a concrete tradeoff. (The note count and word limit are enforced by `scripts/validate-content.ts` and `tests/content.test.ts`; the path and line are not checked automatically, so verify them by hand.)
 6. Ticket-specific coaching in `src/learning.ts`: a failure to predict, a behavior to explain, and a trade-off to defend. Tie these prompts to the actual exercise rather than a generic essay question.
 
 ```ts

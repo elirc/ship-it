@@ -1,6 +1,8 @@
 # Verification
 
-Verified locally on September 7, 2026 with Node 24 and Chromium.
+Verified locally on September 7, 2026 with Node 24 and Chromium. This file records that run; it is not regenerated automatically.
+
+The test counts below match the current sources: the Vitest files declare 32 cases in `tests/content.test.ts` (one integrity check, 25 reference checks generated per seeded ticket, six buggy-starter checks per lab), 8 in `tests/harness.test.ts`, 9 in `tests/learning.test.ts` and 12 in `tests/store.test.ts` (61 total); the Playwright files declare 3 + 7 = 10 tests.
 
 - Production build: passed, including strict TypeScript and reference validation.
 - Vitest: **61 tests passed** across the store, reward logic, sandbox harness, curriculum, recall scheduling, learning evidence, and backup compatibility. Each new lab's buggy starter is checked to fail its suite.

@@ -93,6 +93,33 @@ See [content/README.md](content/README.md). Every authored reference must pass i
 
 See [VERIFICATION.md](VERIFICATION.md) for build and test results, audit scope, metrics, and screenshots.
 
+## Reading the code
+
+Anchors for the claims above, so they can be checked rather than trusted:
+
+- **Curriculum shape.** `src/content/curriculum.ts:832-944` defines six sprints. Sprint 1 is eight tickets plus a boss; sprints 2-6 are nine tickets plus a boss each (59 entries). `future()` and `futureBoss()` (`curriculum.ts:790-831`) generate the 40 coming-soon entries with empty tests. The six labs are `ENG-001`-`ENG-006` in `src/content/engineering.ts`. `allTickets` and `seededTickets` (`curriculum.ts:945-949`) give 65 and 25.
+- **Test names.** `seed()` extracts names with `/test\('([^']+)'/g` (`curriculum.ts:49`), so only single-quoted test names are recognized. A double-quoted test would run but be missing from `testNames`; `scripts/validate-content.ts:17-22` catches that as a count mismatch.
+- **Four separate time limits.** Compilation 30 s (`src/runner/client.ts:38-44`), sandbox start-up 10 s (`client.ts:108-116`), execution 3 s from the frame's `ready` message (`client.ts:79-87`), and an in-sandbox guard that throws after 2.5 s inside instrumented loops and functions (`src/runner/harness.ts:111-116`).
+- **Sandbox boundary.** `sandbox="allow-scripts allow-forms"` (`client.ts:67`) and the CSP in the `srcdoc` (`client.ts:107`). The host accepts a result only from that iframe's window and with the run's random id (`client.ts:75-93`).
+- **Progress rules.** Storage key `ship-it.progress.v1` (`src/store.ts:12`); streak with one lifetime grace day (`store.ts:66-79`); recall intervals `[1, 3, 7, 21]` days (`src/learning.ts:10-17`); imported results are rejected if any name is not one of the ticket's `testNames` (`store.ts:337`).
+
+## Exercises
+
+1. **Goal:** see the sandbox refuse the network.
+   **Check:** in any worker-runtime ticket, call `fetch('https://example.com')` inside a tested function and run; the test fails with "Network and nested workers are disabled in this sandbox. Use the injected API mock." (`src/runner/worker-runtime.ts:3-21` replaces `fetch`, `XMLHttpRequest`, `WebSocket`, `EventSource`, `importScripts`, `Worker` and `SharedWorker`), and the CSP's `connect-src 'none'` would block the request even without that override.
+2. **Goal:** distinguish the 2.5 s guard from the 3 s deadline.
+   **Check:** a `while (true) {}` loop fails with the harness message "Execution timed out. Check loops and recursive calls…", while `await new Promise(() => {})` fails with the host's "Execution timed out after 3 seconds…" message.
+3. **Goal:** prove XP cannot be farmed.
+   **Check:** pass a ticket, note the XP, rerun the same passing code twice; the total does not change (covered by `tests/store.test.ts`, "unlocks linearly and never farms XP from repeat runs").
+4. **Goal:** add a ticket end to end.
+   **Check:** following `content/README.md`, a new seeded ticket makes `npm run validate-content` print one more `PASS` line, and `tests/content.test.ts` must be updated from 25 to 26 before `npm test` passes again.
+
+## Review notes
+
+- The result bridge trusts whatever the frame posts with the run id (`client.ts:92-93`). In iframe mode, learner code shares the document with the bridge script, so it can in principle post its own result. This is consistent with the stated non-goal (progress is not tamper-resistant); the store's name check (`store.ts:337,504`) limits forgeries to known test names.
+- `content/README.md` requires review notes to reference an existing file and a real line number, but neither `scripts/validate-content.ts` nor `tests/content.test.ts` checks `review[].file` or `review[].line`; only the 40-word limit and note count are enforced.
+- `runtimeCache` (`client.ts:2-11`) keeps the sandbox bundle text for the page's lifetime, so a rebuilt runtime is only picked up after a reload.
+
 ## Primary references
 
 The implementation follows [Vite’s worker bundling API](https://vite.dev/guide/features#web-workers), [Monaco’s language-service configuration](https://microsoft.github.io/monaco-editor/typedoc/interfaces/languages_features_typescript_register.LanguageServiceDefaults.html), and [React Testing Library’s render and cleanup API](https://testing-library.com/docs/react-testing-library/api/).
